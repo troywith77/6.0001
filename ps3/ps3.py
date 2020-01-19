@@ -94,7 +94,8 @@ def get_word_score(word, n):
     first_score = 0
     
     for s in word:
-        first_score += SCRABBLE_LETTER_VALUES[s.lower()]
+        if s != '*':
+            first_score += SCRABBLE_LETTER_VALUES[s.lower()]                
     
     second_score = 7 * len(word) - 3 * (n - len(word))
     
@@ -148,7 +149,9 @@ def deal_hand(n):
     hand={}
     num_vowels = int(math.ceil(n / 3))
 
-    for i in range(num_vowels):
+    hand['*'] = 1
+
+    for i in range(num_vowels - 1):
         x = random.choice(VOWELS)
         hand[x] = hand.get(x, 0) + 1
     
@@ -207,14 +210,28 @@ def is_valid_word(word, hand, word_list):
     for l in word:
         letter = l.lower()
         if new_hand.get(letter, 0) == 0:
-            return False
+            if letter == '*' and new_hand.get('*', 0) > 0:
+                new_hand['*'] = 0
+            else:    
+                return False
         else:
             new_hand[letter] = new_hand.get(letter) - 1
     
     for w in word_list:
-        if w == word.lower():
-            return True
-        
+        if len(w) == len(word):
+            l = len(word)
+            equal = False
+            for n in range(l):
+                if w[n] == word[n].lower():
+                    equal = True
+                elif word[n] == '*' and w[n] in VOWELS:
+                    equal = True
+                else:
+                    equal = False
+                    break
+            if equal:
+                return True
+
     return False
 
 #
@@ -228,7 +245,10 @@ def calculate_handlen(hand):
     returns: integer
     """
     
-    pass  # TO DO... Remove this line when you implement this function
+    sum = 0
+    for value in hand.values():
+        sum += value
+    return sum
 
 def play_hand(hand, word_list):
 
@@ -292,9 +312,25 @@ def play_hand(hand, word_list):
     # so tell user the total score
 
     # Return the total score as result of function
-
-
-
+    score = 0
+    hand = deal_hand(HAND_SIZE)
+    
+    while calculate_handlen(hand):
+        print('Current Hand: ')
+        display_hand(hand)
+        word = input('Enter word, or "!!" to indicate that you are finished: ')
+        if (word == '!!'):
+            break
+        if (is_valid_word(word, hand, word_list)):
+            s = get_word_score(word, calculate_handlen(hand))
+            score += s
+            hand = update_hand(hand, word)
+            print('"' + s + '" earned 90 points. Total: ' + score + 'points.')
+        else:
+            print('That is not a valid word. Please choose another word.')
+            
+    if calculate_handlen(hand) == 0:
+        print('Ran out of letters. Total score: ' + score + ' points')
 #
 # Problem #6: Playing a game
 # 
