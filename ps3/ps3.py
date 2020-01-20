@@ -313,11 +313,20 @@ def play_hand(hand, word_list):
 
     # Return the total score as result of function
     score = 0
-    hand = deal_hand(HAND_SIZE)
+    substitute_chance = 1
     
     while calculate_handlen(hand):
         print('Current Hand: ')
         display_hand(hand)
+        
+        if substitute_chance > 0:
+            substitute = input('Would you like to substitute a letter? ')
+            if substitute == 'yes':
+                substitute_letter = input('Which letter would you like to replace: ')
+                hand = substitute_hand(hand, substitute_letter)
+                substitute_chance -= 1
+                continue
+        
         word = input('Enter word, or "!!" to indicate that you are finished: ')
         if (word == '!!'):
             break
@@ -325,12 +334,14 @@ def play_hand(hand, word_list):
             s = get_word_score(word, calculate_handlen(hand))
             score += s
             hand = update_hand(hand, word)
-            print('"' + s + '" earned 90 points. Total: ' + score + 'points.')
+            print('"' + word + '" earned 90 points. Total: ' + str(score) + ' points.')
         else:
             print('That is not a valid word. Please choose another word.')
             
     if calculate_handlen(hand) == 0:
-        print('Ran out of letters. Total score: ' + score + ' points')
+        print('Ran out of letters. Total score: ' + str(score) + ' points')
+        
+    print('Total score for this hand:', score)
 #
 # Problem #6: Playing a game
 # 
@@ -363,7 +374,16 @@ def substitute_hand(hand, letter):
     returns: dictionary (string -> int)
     """
     
-    pass  # TO DO... Remove this line when you implement this function
+    if hand.get(letter, 0) == 0:
+        return hand
+    
+    x = random.choice(VOWELS + CONSONANTS)
+    n = hand.get(letter)
+    new_hand = hand.copy()
+    del(new_hand[letter])
+    new_hand[x] = n
+    return new_hand 
+    
        
     
 def play_game(word_list):
@@ -396,9 +416,13 @@ def play_game(word_list):
 
     word_list: list of lowercase strings
     """
-    
-    print("play_game not implemented.") # TO DO... Remove this line when you implement this function
-    
+    hands_number = int(input('Enter total number of hands: '))
+    hand = deal_hand(HAND_SIZE)
+    while hands_number > 0:    
+        play_hand(hand, word_list)
+        hands_number -= 1
+        if (hands_number > 0 and input('Would you like to replay the hand? ') != 'yes'):
+            hand = deal_hand(HAND_SIZE)  
 
 
 #
